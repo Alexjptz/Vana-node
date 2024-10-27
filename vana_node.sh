@@ -268,7 +268,7 @@ while true; do
                     show_orange "-------------------------------------------------------------"
                     ;;
                 3)
-                    break
+                    exit 0
                     ;;
                 *)
                     show_orange "Неверный выбор (Invalid option)"
@@ -584,7 +584,7 @@ EOF
                         fi
                         ;;
                     4)
-                        break
+                        show_orange "Отмена (Сancel)"
                         ;;
                     *)
                         show_orange "Неверный выбор (Invalid option)"
@@ -621,30 +621,32 @@ EOF
             show_orange "MAKE SURE YOU HAVE SAVED THE RECOVERY DATA"
             echo ""
             show_red "_____________ !!!WARNING!!! ________________"
+            echo ""
 
-            read -p "Удалить ноду? Delete node? (yes/no): " option
+            while true; do
+                read -p "Удалить ноду? Delete node? (yes/no): " option
 
-            case "$option" in
-                yes|y|Y|Yes|YES)
-                    show_orange "Удаление (Deleting)..."
-                    sleep 1
-                    sudo systemctl stop vana.service
-                    sudo systemctl disable vana.service
-                    sudo systemctl daemon-reload
-                    rm -rvf $HOME/.vana
-                    rm -rvf $HOME/vana-dlp-chatgpt
-                    rm -rvf $HOME/vana-dlp-smart-contracts
-                    show_green "--- НОДА УДАЛЕНА. NODE DELETED. ---"
-                    ;;
-                no|n|N|No|NO)
-                    show_orange "Отмена (Cancel)"
-                    sleep 2
-                    break
-                    ;;
-                *)
-                    show_orange " Введите (Enter) 'yes' или 'no'."
-                    ;;
-            esac
+                case "$option" in
+                    yes|y|Y|Yes|YES)
+                        show_orange "Удаление (Deleting)..."
+                        sleep 1
+                        sudo systemctl stop vana.service
+                        sudo systemctl disable vana.service
+                        sudo systemctl daemon-reload
+                        rm -rvf $HOME/.vana
+                        rm -rvf $HOME/vana-dlp-chatgpt
+                        rm -rvf $HOME/vana-dlp-smart-contracts
+                        show_green "--- НОДА УДАЛЕНА. NODE DELETED. ---"
+                        ;;
+                    no|n|N|No|NO)
+                        show_orange "Отмена (Cancel)"
+                        sleep 2
+                        ;;
+                    *)
+                        show_orange " Введите (Enter) 'yes' или 'no'."
+                        ;;
+                esac
+            done
             ;;
         11)
             # Stop script and exit
