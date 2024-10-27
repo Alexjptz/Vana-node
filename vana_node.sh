@@ -585,6 +585,7 @@ EOF
                         ;;
                     4)
                         show_orange "Отмена (Сancel)"
+                        break
                         ;;
                     *)
                         show_orange "Неверный выбор (Invalid option)"
@@ -637,10 +638,12 @@ EOF
                         rm -rvf $HOME/vana-dlp-chatgpt
                         rm -rvf $HOME/vana-dlp-smart-contracts
                         show_green "--- НОДА УДАЛЕНА. NODE DELETED. ---"
+                        break
                         ;;
                     no|n|N|No|NO)
                         show_orange "Отмена (Cancel)"
                         sleep 2
+                        break
                         ;;
                     *)
                         show_orange " Введите (Enter) 'yes' или 'no'."
