@@ -400,6 +400,7 @@ EOF
                         source $HOME/.bashrc
                         run_commands "./vanacli dlp approve_validator --validator_address=$HOTKEY_ADDRESS"
                         echo ""
+                        break
                         ;;
                     2)
                         break
