@@ -75,7 +75,7 @@ while true; do
     echo "2. Установить VANA (Installation)"
     echo "3. Создать/Восстановить кошельки (Create/Restore Wallets)"
     echo "4. Деплой контракта в MOKSHA (Deploy)"
-    echo "5. Установка Валидатора (Validator installation)"
+    echo "5. Установить/восстановить Валидатора (Install/Restore Validator)"
     echo "6. Запуск/остановка/перезапуск (Start/stop/restart)"
     echo "7. Проверить логи (Check Logs)"
     echo "8. Восстановить (Restore)"
@@ -114,6 +114,7 @@ while true; do
             sudo apt install python3-pip python3-venv curl -y
             curl -sSL https://install.python-poetry.org | python3 -
             sed -i '1i export PATH="/root/.local/bin:$PATH"' "$HOME/.bashrc"
+            export PATH="/root/.local/bin:$PATH"
             source $HOME/.bashrc
 
             POETRY_VERSION=$(poetry --version 2>&1)
@@ -130,11 +131,17 @@ while true; do
             fi
 
             #  Node.js and npm installation
+            process_notification "Чистим (Clear) Nodejs Libnode-dev "
+            run_commands "apt remove -y nodejs && sudo apt remove -y libnode-dev && sudo apt clean"
+
             process_notification "Устанавливаем Node.js и npm (Installing Node.js and npm)..."
-            curl -fsSL https://fnm.vercel.app/install | bash
-            source $HOME/.bashrc
-            fnm use --install-if-missing 22
-            sudo apt install npm
+            curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+            sudo apt install -y nodejs
+
+            # curl -fsSL https://fnm.vercel.app/install | bash
+            # source ~/.bashrc | bash
+            # fnm use --install-if-missing 22
+
             NODE_VERSION=$(node -v 2>&1 | sed 's/v//')
             NPM_VERSION=$(npm -v 2>&1)
 
@@ -145,16 +152,17 @@ while true; do
 
             #  Installing dependencies
             process_notification "Устанавливаем зависимости (Installing dependencies)..."
-            apt-get install nodejs -y && npm install -g yarn
+            run_commands "npm install -g yarn"
+
             if YARN_VERSION=$(yarn --version 2>&1); then
                 sleep 1
                 echo ""
-                show_green "Yarn установлен (installed) Успешно (Success)"
+                show_green "Yarn установлен (installed)"
                 echo ""
             else
                 sleep 1
                 echo ""
-                show_red "Ошибка (Fail)"
+                show_red "Yarn ошибка"
                 echo ""
             fi
 
@@ -175,7 +183,7 @@ while true; do
             run_commands "cp .env.example .env"
 
             process_notification "Устанавливаем зависимости и CLI (Installing dependencies and CLI)..."
-            run_commands "poetry install && pip install vana"
+            run_commands "(cd $HOME/vana-dlp-chatgpt && poetry install) && pip install vana"
 
             echo ""
             show_green "--- НОДА УСТАНОВЛЕНА. NODE INSTALLED ---"
@@ -327,8 +335,8 @@ while true; do
             ENV_FILE="$HOME/vana-dlp-chatgpt/.env"
 
             read -p "Введите (Enter) OpenAI API Key: " OPENAI_API_KEY
-            read -p "Введите (Enter) DLP Smart Contract Address: " DATA_LIQUIDITY_POOL
-            read -p "Введите (Enter) DLP Token Contract Address: " DATA_LIQUIDITY_POOL_TOKEN
+            read -p "Введите (Enter) DATA LIQUIDITY POOL ADDRESS: " DATA_LIQUIDITY_POOL
+            read -p "Введите (Enter) DATA_LIQUIDITY POOL TOKEN ADDRESS: " DATA_LIQUIDITY_POOL_TOKEN
             read -p "Введите (Enter) Public Key (base64): " PUBLIC_KEY
 
             if cat <<EOF > "$ENV_FILE"
@@ -359,22 +367,48 @@ EOF
                 show_red "Ошибка (Fail)"
                 echo ""
             fi
-            echo ""
-            show_blue "Отправьте 10 своих токенов на COLD И HOT кошельки"
-            echo ""
-            show_blue "Send 10 yours tokens to COLD and HOT wallets"
-            echo ""
-            show_green "Нажмите Enter, чтобы продолжить. Press Enter to proceed"
-            read
 
-            process_notification "Регистрируем валидатора (Validator registration)..."
-            run_commands "cd &HOME/vana-dlp-chatgpt/ && ./vanacli dlp register_validator --stake_amount 10"
-            echo ""
+            while true; do
+                show_orange "Выберете (Сhoose):"
+                echo "1. Создать (Create) Validator"
+                echo "2. Восстановить (Restore) Validator"
+                echo ""
 
-            process_notification "Подтверждаем валидатора (Approving Validator)..."
-            echo ""
-            read -p "Введите (Enter) HOT KEY ADDRESS: " HOTKEY_ADDRESS
-            run_commands "cd &HOME/vana-dlp-chatgpt/ && ./vanacli dlp approve_validator --validator_address=$HOTKEY_ADDRESS"
+                read -p "Введите номер опции (Enter option number): " option
+
+                case $option in
+                    1)
+                        echo ""
+                        show_blue "Отправьте 10 своих токенов на COLD И HOT кошельки"
+                        echo ""
+                        show_blue "Send 10 yours tokens to COLD and HOT wallets"
+                        echo ""
+                        show_green "Нажмите Enter, чтобы продолжить. Press Enter to proceed"
+                        read
+
+                        process_notification "Регистрируем валидатора (Validator registration)..."
+                        echo ""
+                        cd $HOME/vana-dlp-chatgpt/
+                        source $HOME/.bashrc
+                        run_commands "./vanacli dlp register_validator --stake_amount 10"
+                        echo ""
+
+                        process_notification "Подтверждаем валидатора (Approving Validator)..."
+                        echo ""
+                        read -p "Введите (Enter) HOT KEY ADDRESS: " HOTKEY_ADDRESS
+                        cd $HOME/vana-dlp-chatgpt/
+                        source $HOME/.bashrc
+                        run_commands "./vanacli dlp approve_validator --validator_address=$HOTKEY_ADDRESS"
+                        echo ""
+                        ;;
+                    2)
+                        break
+                        ;;
+                    *)
+                        incorrect_option
+                        ;;
+                esac
+            done
 
             process_notification "Создаем сервис (Creating Service)..."
             cd $HOME
@@ -414,9 +448,13 @@ EOF
 
             SERVICE_STATUS=$(sudo systemctl is-active vana.service)
             if [[ "$SERVICE_STATUS" == "active" ]]; then
+                echo ""
                 show_green "НОДА АКТИВНА И РАБОТАЕТ. NODE IS ACTIVE AND OPERATING"
+                echo ""
             else
+                echo ""
                 show_red "НЕ УДАЛОСЬ ЗАПУСТИТЬ НОДУ. COULDN'T START THE NODE"
+                echo ""
             fi
             ;;
         6)

@@ -1,7 +1,7 @@
 Vana linux instalation script and guide
 
 MIN SPEC
-1CPU/8RAM/10SSD
+2 cores, 8 GB RAM, 25 GB SSD
 
 Commands:
 
