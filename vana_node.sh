@@ -233,7 +233,7 @@ while true; do
 
                     # Generating keys
                     process_notification "Генерация ключей (Generating keys)..."
-                    ./keygen.sh
+                    cd $HOME && ./keygen.sh
                     ;;
                 2)
                     # Restore Wallets
