@@ -233,7 +233,7 @@ while true; do
 
                     # Generating keys
                     process_notification "Генерация ключей (Generating keys)..."
-                    cd $HOME && ./keygen.sh
+                    cd $HOME/vana-dlp-chatgpt/ && source $HOME/.bashrc && ./keygen.sh
                     ;;
                 2)
                     # Restore Wallets
